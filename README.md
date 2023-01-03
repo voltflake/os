@@ -1,8 +1,10 @@
 ⚠️ **DO NOT TRY TO RUN IT ON YOUR HARDWARE!**  
 ⚠️ **IT POTENTIALY CAN DAMAGE OR DESTROY IT.**  
 ⚠️ **You have been warned!**  
-  
+
 😇 ***Although it worked properly on my old laptop and desktop pc.***  
+
+![Demonstration of running OS](preview.png)
 
 # Installing build tools
 > All operating systems, including Windows  
@@ -26,3 +28,4 @@ llvm-objcopy --set-start=0x7c00 -O binary kernel.o kernel.bin
 
 qemu-system-i386 -fda kernel.bin
 ```
+> To jump to C code uncomment line 138 in bootloader.s

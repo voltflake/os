@@ -135,7 +135,7 @@ mov ecx, 26*25 ;25 rows
 call show_mem
 
 ; jump into C enviroment
-call kmain
+; call kmain
 
 ; halt cpu
 hlt
