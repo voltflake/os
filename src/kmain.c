@@ -9,6 +9,6 @@ void puts(char* string) {
 }
 
 void kmain(void) {
-    puts("0123456789");
+    puts("Hello world!");
     return;
 }

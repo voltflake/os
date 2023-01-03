@@ -2,6 +2,7 @@ set_bg:
 	pushad 
 	mov cx, 2000
 	mov edi, 0xb8001
+
 set_bg_loop:
 	mov [ds:edi], byte 00011111b
 	add edi, 2
@@ -26,6 +27,7 @@ putchar:
 	inc dword [carretpos]
 	pop edi
     jmp endputchar
+
 newline:
     push edx
 	push ebx
@@ -39,8 +41,10 @@ newline:
 
 	pop ebx
     pop edx
+
 endputchar:
     ret
+
 carretpos: dd 0
 
 ; remove_cursor:
@@ -55,13 +59,15 @@ carretpos: dd 0
 ; 	popad
 ; 	ret
 
-;prints <cx> bytes starting from <si> address
+; prints <cx> bytes starting from <si> address
 show_mem_inc_dx:
 	mov al, 10
 	call putchar
 	mov edx, 26
+
 show_mem:
 	mov edx, 26
+
 show_mem_loop:
 	cmp edx, 0
 	je show_mem_inc_dx
@@ -75,11 +81,12 @@ show_mem_loop:
 	dec edx
 	inc esi
 	jmp show_mem_loop
+
 show_mem_end:
 	ret
 
-;prints <al> into 2 hex digits
-;changes <ax> <dx>
+; prints <al> into 2 hex digits
+; changes <ax> <dx>
 hex_print_byte:
 	push eax
 	;using al
@@ -93,7 +100,7 @@ hex_print_byte:
 	call putchar
 	ret
 
-;converts al hex value to ascii symbol (0-F)
+; converts al hex value to ascii symbol (0-F)
 hex_to_ascii:
 	push ebx
 	; pre-calculate both values to avoid branching

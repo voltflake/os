@@ -1,7 +1,28 @@
-# OS
-Dependencies: ld, nasm, clang, ddrelease64, objcopy, qemu or virtualbox machine.
+⚠️ **DO NOT TRY TO RUN IT ON YOUR HARDWARE!**  
+⚠️ **IT POTENTIALY CAN DAMAGE OR DESTROY IT.**  
+⚠️ **You have been warned!**  
+  
+😇 ***Although it worked properly on my old laptop and desktop pc.***  
 
-Worked properly on my unused laptop and old desktop pc.
-DO NOT TRY TO RUN IT ON YOUR HARDWARE.
+# Installing build tools
+> All operating systems, including Windows  
+ - [NASM assembler](https://nasm.us/) (nasm)  
+ - [LLVM toolchain](https://releases.llvm.org/) (clang, llvm-objcopy, ld.lld)  
+ - [QEMU emulator](https://www.qemu.org/download/) (qemu-system-i386)  
+> Make sure all tools available from PATH   
+# Building and running project
+```
+cd src
 
-Build script is for Windows systems and it requires your own edits to it.
+nasm -Werror -f elf32 -o ../build/bootloader.o bootloader.s
+
+cd ../build
+
+clang --target=i686-pc-none-elf -c -o kmain.o ../src/kmain.c
+
+ld.lld -T linker.ld
+
+llvm-objcopy --set-start=0x7c00 -O binary kernel.o kernel.bin
+
+qemu-system-i386 -fda kernel.bin
+```

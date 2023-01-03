@@ -2,12 +2,16 @@
 [bits 16]
 
 ; tell NASM offset for labels
-; [GOODTOKNOW] When using elf object file format offsets are all relative
-; [GOODTOKNOW] so we need to tell linker our absolute offset for labels (-Ttext 0x7c00)
 ; [org 0x7c00]
+
+; NOTE: When using elf object file format offsets are all relative, so we need to
+;       tell linker our absolute offset for labels (-Ttext 0x7c00)
+;       This info is not reliable!
 
 extern kmain
 global start
+
+start:
 
 ; set all segments to 0
 jmp 0:set_segments
@@ -19,9 +23,10 @@ mov es, ax
 mov fs, ax
 mov gs, ax
 
+; NOTE: Small stack size can hang bios on interrupt!
+;       That means bios uses stack space initialised in kernel-space.
+
 ; setup stack space
-; [FIXEDBUG] small stack size can hang bios on interrupt
-; [GOODTOKNOW] BIOS uses our stack!
 mov bp, 0xF000
 mov sp, bp
 
@@ -54,7 +59,7 @@ jc read_sector
 cli
 
 ; disable PIC (hardware interrupts)
-; [SOURCE] http://www.brokenthorn.com/Resources/OSDevPic.html
+; SEE: http://www.brokenthorn.com/Resources/OSDevPic.html
 mov al, 0x11
 out 0x20, al
 out 0xa0, al
@@ -73,15 +78,15 @@ out 0x21, al
 out 0xa1, al
 
 ; disable NMI
-; [SOURCE] https://en.wikipedia.org/wiki/Non-maskable_interrupt
-; [SOURCE] https://wiki.osdev.org/NMI
+; SEE: https://en.wikipedia.org/wiki/Non-maskable_interrupt
+; SEE: https://wiki.osdev.org/NMI
 in al, 0x70
 or al, 0x80
 out 0x70, al
 
 ; enable A20 line
-; [TODO] add methods of activating A20 before using "fast A20"
-; [SOURCE] http://independent-software.com/operating-system-development-enabling-a20-line.html
+; TODO: add methods of activating A20 before using "fast A20"
+; SEE: http://independent-software.com/operating-system-development-enabling-a20-line.html
 call check_a20
 cmp al, 1
 je a20_ready
@@ -91,8 +96,8 @@ out 0x92, al
 a20_ready:
 
 ; load GDT
-; [SOURCE] https://en.wikipedia.org/wiki/Global_Descriptor_Table
-; [SOURCE] https://www.youtube.com/watch?v=JO0z6s6s1bs
+; SEE: https://en.wikipedia.org/wiki/Global_Descriptor_Table
+; SEE: https://www.youtube.com/watch?v=JO0z6s6s1bs
 lgdt [ds:gdt_desc]
 
 ; set PM bit
@@ -135,7 +140,6 @@ call kmain
 ; halt cpu
 hlt
 
-; [TESTING]
 ; emergency infinite jump
 ; just in case of cpu waking up somehow on real hardware
 jmp $
