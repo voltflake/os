@@ -9,7 +9,12 @@ SECTIONS
     bootloader.o( .text )
   }
   .kmain (0x7e00) : { *(.text) }
-  .rodata : { *(.rodata) }
-  .comment : { *(.comment) }
-  .eh_frame : { *(.eh_frame) }
+  .rodata : {
+    *(.rodata)
+    *(.rodata*)
+  }
+  /DISCARD/ : {
+    *(.comment)
+    *(.eh_frame)
+  }
 }
