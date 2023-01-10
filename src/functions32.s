@@ -31,8 +31,8 @@ putchar:
 newline:
     push edx
 	push ebx
-	xor edx, edx
 
+	xor edx, edx
     mov eax, [carretpos]
 	mov ebx, 80
     div ebx
@@ -60,28 +60,27 @@ carretpos: dd 0
 ; 	ret
 
 ; prints <cx> bytes starting from <si> address
-show_mem_inc_dx:
-	mov al, 10
-	call putchar
-	mov edx, 26
-
 show_mem:
-	mov edx, 26
+	mov edx, 80
 
 show_mem_loop:
 	cmp edx, 0
-	je show_mem_inc_dx
+	je show_mem
 	cmp ecx, 0
 	je show_mem_end
 	mov al, [esi]
 	call hex_print_byte
+	dec edx
+	dec edx
+	cmp edx, 0
+	je skip_printing_space
 	mov al, ' '
 	call putchar
-	dec ecx
 	dec edx
+skip_printing_space:
+	dec ecx
 	inc esi
 	jmp show_mem_loop
-
 show_mem_end:
 	ret
 

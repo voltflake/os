@@ -192,7 +192,7 @@ call set_bg
 
 ; function that shows bootsector content on screen
 mov esi, 0x7c00
-mov ecx, 26*25 ;25 rows
+mov ecx, 27*25 ;25 rows
 call show_mem
 
 ; jump into C enviroment
