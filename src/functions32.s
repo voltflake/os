@@ -1,10 +1,10 @@
 set_bg:
-	pushad 
+	pushad
 	mov cx, 2000
 	mov edi, 0xb8001
 
 set_bg_loop:
-	mov [ds:edi], byte 00011111b
+	mov [ds:edi], byte 00001010b
 	add edi, 2
 	loop set_bg_loop
 	popad

@@ -37,6 +37,7 @@ int 0x10
 mov ah, 0x00
 int 0x13
 
+; NOTE: Reading more sectors than available on disk result in error.
 ; read disk sectors into memory.
 mov ah, 2          ; read operation
 mov al, 2          ; read 2 sectors
