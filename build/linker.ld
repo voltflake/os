@@ -5,10 +5,13 @@ ENTRY(start)
 OUTPUT_ARCH(i386)
 SECTIONS
 {
-  .bootloader (0x7c00) : {
-    bootloader.o( .text )
+  .stage1_bootloader (0x7c00) : {
+    bootloader.o( .mbr_record )
   }
-  .kmain (0x7e00) : { *(.text) }
+  .stage2_bootloader : {
+    bootloader.o( .stage2_bootloader )
+  }
+  .kmain : { *(.text) }
   .rodata : {
     *(.rodata)
     *(.rodata*)

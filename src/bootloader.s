@@ -1,60 +1,122 @@
-; tell NASM to use 8086 instructions
-[bits 16]
-
-; tell NASM offset for labels
-; [org 0x7c00]
-
 ; NOTE: When using elf object file format offsets are all relative, so we need to
 ;       tell linker our absolute offset for labels (-Ttext 0x7c00)
 ;       This info is not reliable!
 
+[bits 16]
 extern kmain
 global start
 
+SECTION .mbr_record
 start:
+    cli             ; We do not want to be interrupted
+    xor ax, ax      ; 0 AX
+    mov ds, ax      ; Set Data Segment to 0
+    mov es, ax      ; Set Extra Segment to 0
+    mov fs, ax      ; Set Extra Segment to 0
+    mov gs, ax      ; Set Extra Segment to 0
+    mov ss, ax      ; Set Stack Segment to 0
+    mov sp, ax      ; Set Stack Pointer to 0
+jmp 0:LowStart  ; Jump to new Address
 
-; set all segments to 0
-jmp 0:set_segments
-set_segments:
-xor ax, ax
-mov ds, ax
-mov ss, ax
-mov es, ax
-mov fs, ax
-mov gs, ax
-
+LowStart:
 ; NOTE: Small stack size can hang bios on interrupt!
 ;       That means bios uses stack space initialised in kernel-space.
-
 ; setup stack space
-mov bp, 0xF000
+mov bp, 0xFFFF
 mov sp, bp
+
+mov [DriveNum], dl
+sti
 
 ; set video mode to text mode 80x25
 mov al, 0x03
 mov ah, 0x00
 int 0x10
 
-; reset floppy drive
-reset_drive:
-mov ah, 0x00  ; reset function
-;mov dl, 0x00  ; drive
-int 0x13   ; disk int
-mov al, ah
-jc reset_drive
-
-; read sectors from floppy to RAM
-read_sector:
-mov ah, 0x02    ; read sectors from drive
-;mov dl, 0x00    ; drive id to load
-mov ch, 0       ; cylinder/track index
-mov dh, 0       ; head index
-mov cl, 2       ; sector number
-mov al, 8       ; sectors to read
-mov bx, 0x7e00  ; pointer to buffer, ES is 0
+; reset disk system.
+mov ah, 0x00
 int 0x13
-jc read_sector
 
+; read disk sectors into memory.
+mov ah, 2          ; read operation
+mov al, 2          ; read 2 sectors
+mov ch, 0          ; cylinder number
+mov cl, 2          ; sector number
+mov dh, 0          ; head number
+mov dl, [DriveNum] ; drive number
+mov bx, 0x7e00     ; points to data buffer
+int 0x13
+jc disk_error
+
+jmp stage2
+
+disk_error:
+    call hex_print_byte16
+    jmp halt16
+
+; prints al
+putchar16:
+    mov ah, 0x0e
+    int 0x10
+    ret
+
+; prints <al> into 2 hex digits
+; changes <ax>
+hex_print_byte16:
+	push ax
+	;using al
+    and al, 0xF0
+	shr al, 4
+	call hex_to_ascii16
+	call putchar16
+	pop ax
+	and al, 0x0F
+	call hex_to_ascii16
+	call putchar16
+	ret
+
+; converts al hex value to ascii symbol (0-F)
+hex_to_ascii16:
+	push bx
+	; pre-calculate both values to avoid branching
+	mov bl, al
+	mov bh, al
+
+	add bh, 0x30
+	add bl, 0x37
+	; check if value can fit in range of ascii digits
+	cmp al, 9
+	; use apropirate shift
+	mov al, bh
+	cmova ax, bx
+	pop bx
+	ret
+
+halt16:
+    hlt
+    jmp halt16
+
+DriveNum db 0
+times (510 - 16*4 - ($-$$)) nop    ; Pad For MBR Partition Table
+
+db 0x80 ; bootable
+db 0x00 ; fisrt CHS
+db 0x02
+db 0x00
+db 0x0B ; type
+db 0x00 ; last CHS
+db 0x05
+db 0x00
+dd 1    ; Logical sector index
+dd 4    ; Partition size
+PT2 times 16 db 0             ; Second Partition Entry
+PT3 times 16 db 0             ; Third Partition Entry
+PT4 times 16 db 0             ; Fourth Partition Entry
+
+dw 0xAA55                     ; Boot Signature
+
+SECTION .stage2_bootloader
+stage2:
 ; ignore maskable interrupts (not critical hardware interrupts?)
 cli
 
@@ -108,10 +170,8 @@ mov cr0, eax
 ; clear pipeline & update code segment
 jmp gdt_code_segment-gdt_start:protected_mode
 
-; tell NASM to use i386 instructions
-[bits 32]
-
 ; start of 32bit protected mode
+[bits 32]
 protected_mode:
 
 ; update segment registers
@@ -137,25 +197,17 @@ call show_mem
 ; jump into C enviroment
 ; call kmain
 
-; halt cpu
-hlt
+jmp halt32
 
-; emergency infinite jump
-; just in case of cpu waking up somehow on real hardware
-jmp $
+halt32:
+    hlt
+    jmp halt32
 
 ; protected mode functions stored here
+[bits 32]
 %include "functions32.s"
 
-; tell NASM to use 8086 instructions
-[bits 16]
-
 ; real mode functions stored here
+[bits 16]
 %include "functions16.s"
 %include "gdt.s"
-
-; fill rest of sector space with zeros
-times 510-($-$$) db 0
-
-; fill last 2 bytes of sector with MBR boot signature
-dw 0xaa55
