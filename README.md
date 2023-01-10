@@ -1,6 +1,4 @@
-⚠️ **DO NOT TRY TO RUN IT ON YOUR HARDWARE!**
-⚠️ **IT POTENTIALY CAN DAMAGE OR DESTROY IT.**
-⚠️ **You have been warned!**
+⚠️ **DO NOT TRY TO RUN IT ON YOUR HARDWARE! IT POTENTIALY CAN DAMAGE OR DESTROY IT. You have been warned!**
 
 😇 ***Although it worked properly on my old laptop and desktop pc.***
 
